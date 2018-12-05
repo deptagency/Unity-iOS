@@ -1,0 +1,64 @@
+[Tt]emp/
+[Oo]bj/
+
+# Keep build products used by host projects
+[Bb]uild/*/*
+![Bb]uild/*/.gitattributes
+![Bb]uild/*/Classes
+![Bb]uild/*/Libraries
+![Bb]uild/*/Frameworks
+![Bb]uild/*/Data
+
+[Ll]ibrary/
+sysinfo.txt
+*.stackdump
+
+#incase a plugin comes with .pdb files
+*.pdb.meta
+
+# Unity3D generated meta files
+*.pidb.meta
+
+# Unity3D Generated File On Crash Reports
+sysinfo.txt
+
+# Builds
+*.apk
+*.unitypackage
+*.unitypackage.meta
+UnityPackageManager
+
+# Don't include this file with a build as it will break the functionality
+Assets/UnityCloud/
+Assets/UnityCloud/Resources/UnityCloudBuildManifest.json.txt
+
+# ============================================= #
+# Visual Studio / MonoDevelop / Rider generated #
+# ============================================= #
+[Ee]xported[Oo]bj/
+.consulo/
+*.booproj
+*.csproj
+*.idea*/
+*.pdb
+*.pidb
+*.suo
+*.sln
+*.svd
+*.tmp
+*.user
+*.unityproj
+*.user
+*.userprefs
+*.vs/
+
+# ============ #
+# OS generated #
+# ============ #
+.DS_Store*
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+[Tt]humbs.db
+[Dd]esktop.ini

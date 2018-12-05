@@ -1,0 +1,2 @@
+Libraries/libiPhone-lib.a filter=lfs diff=lfs merge=lfs -text
+Libraries/libil2cpp.a filter=lfs diff=lfs merge=lfs -text

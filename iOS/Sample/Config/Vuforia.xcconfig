@@ -1,0 +1,12 @@
+// Contains configuration for using Vuforia
+// If not using Vuforia, you should delete this file
+
+// Only include Vuforia on device
+UNITY_VUFORIA_LINK[arch=arm64] = -framework Vuforia -lVuforiaWrapper
+
+// Vuforia doesn't support bitcode :(
+// https://developer.vuforia.com/forum/ios/any-plans-xcode7ios9-bitcode-support
+ENABLE_BITCODE = NO;
+
+// Link with Vuforia
+OTHER_LDFLAGS[config=*] = $(inherited) $(UNITY_VUFORIA_LINK);

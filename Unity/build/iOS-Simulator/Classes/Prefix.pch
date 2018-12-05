@@ -1,0 +1,28 @@
+#import <TargetConditionals.h> // Modified by PostBuild.cs
+#if TARGET_OS_SIMULATOR // Modified by PostBuild.cs
+//
+// Prefix header
+//
+
+#include "Preprocessor.h"
+
+#ifdef __OBJC__
+    #import <Foundation/Foundation.h>
+    #import <UIKit/UIKit.h>
+#endif
+
+#include "UnityTrampolineConfigure.h"
+#include "UnityInterface.h"
+
+#ifndef __OBJC__
+    #if USE_IL2CPP_PCH
+        #include "il2cpp_precompiled_header.h"
+    #endif
+#endif
+
+#ifndef TARGET_IPHONE_SIMULATOR
+    #define TARGET_IPHONE_SIMULATOR 0
+#endif
+
+#define printf_console printf
+#endif // Modified by PostBuild.cs

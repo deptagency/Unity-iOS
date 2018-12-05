@@ -1,0 +1,8 @@
+// Optionally include Pods config, which will only be present if using Cocoapods
+// TODO: Replace `Sample` with actual target name
+#include? "../../Pods/Target Support Files/Pods-Sample/Pods-Sample.release.xcconfig"
+
+#include "Unity.xcconfig"
+
+// Optionally include Vuforia config
+#include? "Vuforia.xcconfig"
