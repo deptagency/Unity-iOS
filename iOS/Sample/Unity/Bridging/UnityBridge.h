@@ -7,8 +7,12 @@
 
 CF_EXTERN_C_BEGIN
 
+extern NSNotificationName const UnityReadyNotificationName;
+
 extern const char* AppControllerClassName;
 void UnityMain(int argc, char *argv[]);
+
+bool UnityReady();
 
 CF_EXTERN_C_END
 

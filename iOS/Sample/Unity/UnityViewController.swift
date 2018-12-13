@@ -31,6 +31,13 @@ final class UnityViewController: UIViewController {
     private init() {
         super.init(nibName: nil, bundle: nil)
         UnityRegisterLifeCycleListener(self)
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(unityReady),
+            name: .UnityReadyNotificationName,
+            object: nil
+        )
     }
 
     deinit {
@@ -120,3 +127,14 @@ extension UnityViewController : LifeCycleListener {
 
 }
 
+// MARK: - Private
+
+private extension UnityViewController {
+
+    @objc func unityReady(_ notification: Notification) {
+        if view.window == nil {
+            pause()
+        }
+    }
+
+}
