@@ -4,7 +4,7 @@ A repository of scripts and configs for embedding a Unity app inside a native Sw
 
 ## Usage
 
-Clone the repo and build the sample Swift project. The sample app is a simple screen with a button to launch the Unity AR experience. When running in the simulator, the Unity scene displays text that indicates AR isn't supported. When running on device, the scene displays the Vuforia camera.
+Clone the repo and build the sample Swift project. Depending on your git client, you may need to `git lfs pull` in your clone directory. The sample app is a simple screen with a button to launch the Unity AR experience. When running in the simulator, the Unity scene displays text that indicates AR isn't supported. When running on device, the scene displays the Vuforia camera.
 
 Aim the camera at the test image included in this repo to view the astronaut in AR! Tap on the astronaut to trigger an animation.
 
