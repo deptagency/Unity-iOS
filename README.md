@@ -4,7 +4,7 @@ A repository of scripts and configs for embedding a Unity app inside a native Sw
 
 ## Usage
 
-**This repository uses Git Large File Storage (LFS). To install LFS, follow these instructions: 
+**This repository uses Git Large File Storage (LFS). To install LFS, follow these instructions:<br/> 
 https://help.github.com/articles/installing-git-large-file-storage/**
 
 Clone the repo and run `git lfs pull` in your clone directory, then build and run the sample Swift project. The sample app is a simple screen with a button to launch the Unity AR experience. When running in the simulator, the Unity scene displays text that indicates AR isn't supported. When running on device, the scene displays the Vuforia camera.
@@ -19,22 +19,30 @@ This repo serves as a template for how to configure both the Xcode and Unity pro
 
 1. Add the `iOS/Sample/Config` directory to your project.
 
+
 2. Add the `iOS/Sample/Unity` directory to your project.
+
 
 3. If using Cocoapods, change the xcconfig name in the Debug and Release configs in the `Config` directory. You can't use variables in the path, but the included Cocoapods config should be this format:
     - `Pods-$(TARGET_NAME).debug.xcconfig`
     - `Pods-$(TARGET_NAME).debug.xcconfig`
 
+
 4. Set the Configuration for your Debug and Release targets to the appropiate config from the `Config` directory. Your project settings should then look similar to this:
 <img width="512" alt="configuration" src="https://user-images.githubusercontent.com/1039147/50562463-17073000-0ce2-11e9-8a9a-5d7d183bf500.png">
 
+
 5. Add a new Run Script build phase with the contents of `Copy Unity Data` script (from the sample project) after `Copy Bundle Resources` build phase.
+
 
 6. If using Vuforia, disable Metal API validation in Scheme -> Options. If not using Vuforia, you can delete `Vuforia.xcconfig` from the `Config` directory.
 <img width="860" alt="metal validation" src="https://user-images.githubusercontent.com/1039147/50562486-369e5880-0ce2-11e9-8aba-8330efa8572a.png">
-    
+
+
 7. Add this line in your app delegate's `didFinishLaunchingWithOptions:`:
-`UnityViewController.shared.configure(with: application, options: launchOptions)`
+```swift
+UnityViewController.shared.configure(with: application, options: launchOptions)
+```
 
 ### Unity Setup
 
