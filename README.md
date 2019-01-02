@@ -1,6 +1,6 @@
 # Unity-iOS
 
-A repository of scripts and configs for embedding a Unity app inside a native Swift project. This repo is itself a template for projects wanting to do this. Sample Xcode and Unity projects are included.
+A repository of scripts and configs for embedding a Unity app inside a native Swift project. This repo is a template for projects wanting to do this. Sample Xcode and Unity projects are included.
 
 ## Usage
 
