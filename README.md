@@ -32,7 +32,7 @@ This repo serves as a template for how to configure both the Xcode and Unity pro
 <img width="512" alt="configuration" src="https://user-images.githubusercontent.com/1039147/50562463-17073000-0ce2-11e9-8a9a-5d7d183bf500.png">
 
 
-5. Add a new Run Script build phase with the contents of `Copy Unity Data` script (from the sample project) after `Copy Bundle Resources` build phase.
+5. Add a new Run Script build phase with the contents of `Copy Unity Data` script from the sample project. If you're using Unity 2018.3 or later, also add a Run Script phase with the contents of the `Embed Unity Dylibs (Simulator Only)` script from the sample project.
 
 
 6. If using Vuforia, disable Metal API validation in Scheme -> Options. If not using Vuforia, you can delete `Vuforia.xcconfig` from the `Config` directory.

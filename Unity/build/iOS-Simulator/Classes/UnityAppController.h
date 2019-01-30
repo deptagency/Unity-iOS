@@ -21,22 +21,14 @@
     DisplayConnection*  _mainDisplay;
 
     // We will cache view controllers used for fixed orientation (indexed by UIInterfaceOrientation).
-    // Default view contoller goes to index 0. The default view controller is
-    // used when autorotation is enabled.
+    // Default view contoller goes to index 0. The default view controller is used when autorotation is enabled.
     //
-    // There's no way to force iOS to change orientation when autorotation is enabled and
-    // the current orientation is disabled. [UIViewController attemptRotationToDeviceOrientation]
-    // is insufficient to force iOS to change orientation in this circumstance.
-    //
-    // To work around this there's an additional view controller. We switch to it when the
-    // autorotating view controller is used and we detect that the current orientation has been
-    // disabled. The controller is swapped with _viewControllerForOrientation[0] immediately,
-    // so _secondaryAutorotatingViewController is never the actual active controller and can be
-    // ignored for most purposes.
+    // There's no way to force iOS to change orientation when autorotation is enabled and the current orientation is disabled.
+    // [UIViewController attemptRotationToDeviceOrientation] is insufficient to force iOS to change orientation in this circumstance.
+    // We will recreate _viewControllerForOrientation[0] in that case immediately (see checkOrientationRequest for more comments)
 #if UNITY_SUPPORT_ROTATION
     UIViewController*       _viewControllerForOrientation[5];
     UIInterfaceOrientation  _curOrientation;
-    UIViewController*       _secondaryAutorotatingViewController;
 #else
     UIViewController*       _viewControllerForOrientation[1];
 #endif

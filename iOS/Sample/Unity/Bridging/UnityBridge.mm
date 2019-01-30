@@ -14,8 +14,15 @@ extern bool _renderingInited;
 void UnityInitTrampoline();
 void UnityRunloopObserverCallback(CFRunLoopObserverRef observer, CFRunLoopActivity activity, void *info);
 
+#if UNITY_USES_DYNAMIC_PLAYER_LIB
+extern "C" void SetAllUnityFunctionsForDynamicPlayerLib();
+#endif
+
 // Copied from Unity's generated main.mm, with the addition of runloop observer
 void UnityMain(int argc, char *argv[]) {
+#if UNITY_USES_DYNAMIC_PLAYER_LIB
+    SetAllUnityFunctionsForDynamicPlayerLib();
+#endif
     @autoreleasepool {
         UnityInitTrampoline();
         UnityInitRuntime(argc, argv);

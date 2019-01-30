@@ -23,6 +23,7 @@ KeyboardShowParam;
 - (void)textInputDone:(id)sender;
 - (void)textInputCancel:(id)sender;
 - (void)textInputLostFocus;
+- (void)keyboardWillShow:(NSNotification*)notification;
 - (void)keyboardDidShow:(NSNotification*)notification;
 - (void)keyboardWillHide:(NSNotification*)notification;
 

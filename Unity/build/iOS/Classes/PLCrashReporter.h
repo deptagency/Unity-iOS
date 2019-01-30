@@ -65,7 +65,8 @@ typedef struct UnityPLCrashReporterCallbacks
     UnityPLCrashReporterPostCrashSignalCallback handleSignal;
 } UnityPLCrashReporterCallbacks;
 
-@interface UnityPLCrashReporter : NSObject {
+@interface UnityPLCrashReporter : NSObject
+{
     @private
     /** YES if the crash reporter has been enabled */
     BOOL _enabled;

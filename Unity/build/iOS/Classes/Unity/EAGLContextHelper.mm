@@ -25,6 +25,7 @@ extern "C" EAGLContext* UnityCreateContextEAGL(EAGLContext * parent, int api)
 
     return [[EAGLContext alloc] initWithAPI: (EAGLRenderingAPI)targetApi sharegroup: group];
 }
+
 extern "C" void UnityMakeCurrentContextEAGL(EAGLContext* context)
 {
     [EAGLContext setCurrentContext: context];

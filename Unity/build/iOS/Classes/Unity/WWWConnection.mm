@@ -431,4 +431,17 @@ extern "C" void UnityShouldCancelWWW(const void* connection)
     UnityWWWConnectionDelegate* delegate = (__bridge UnityWWWConnectionDelegate*)connection;
     [delegate cancelConnection];
 }
+
+extern "C" void UnityWWWClearCookieCache(const char* domain)
+{
+    NSArray<NSHTTPCookie*>* cookies;
+    NSHTTPCookieStorage* cookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+    if (domain == NULL)
+        cookies = [cookieStorage cookies];
+    else
+        cookies = [cookieStorage cookiesForURL: [NSURL URLWithString: [NSString stringWithUTF8String: domain]]];
+    NSUInteger cookieCount = [cookies count];
+    for (int i = 0; i < cookieCount; ++i)
+        [cookieStorage deleteCookie: cookies[i]];
+}
 #endif // Modified by PostBuild.cs

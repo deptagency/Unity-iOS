@@ -13,6 +13,8 @@ class ViewController: UIViewController {
     /// Presents the shared UnityViewController
     @IBAction func showUnity() {
         let nav = UINavigationController(rootViewController: UnityViewController.shared)
+
+        UnityViewController.shared.title = "Sample Scene"
         UnityViewController.shared.navigationItem.leftBarButtonItem = UIBarButtonItem(
             image: #imageLiteral(resourceName: "btn-x"),
             style: .plain,

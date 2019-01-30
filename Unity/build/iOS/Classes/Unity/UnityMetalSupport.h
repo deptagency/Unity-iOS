@@ -24,6 +24,7 @@ enum
 {
     MTLPixelFormatBGRA8Unorm,
     MTLPixelFormatBGRA8Unorm_sRGB,
+    MTLPixelFormatR16Float,
 };
 
 #endif

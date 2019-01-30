@@ -30,6 +30,10 @@ namespace Rocket.Editor {
             if ( PlayerSettings.iOS.sdkVersion == iOSSdkVersion.DeviceSDK ) {
                 EditVuforiaRenderDelegateMM(Path.Combine(pathToBuiltProject, "Libraries", "VuforiaRenderDelegate.mm"));
             }
+
+            #if UNITY_2018_3_OR_NEWER
+            EditDynamicLibEngineAPIMM(Path.Combine(pathToBuiltProject, "Classes", "DynamicLibEngineAPI.mm"));
+            #endif
         }
 
         private static void EditObjcRuntimeH(string path) {
@@ -69,6 +73,23 @@ namespace Rocket.Editor {
                     };
                 }
                 return new string[] { line };
+            });
+        }
+
+        private static void EditDynamicLibEngineAPIMM(string path) {
+            var alreadyModified = false;
+
+            EditFile(path, line => {
+                alreadyModified |= line.Contains(ModifiedTag);
+
+                if ( !alreadyModified && line.Trim().Equals("#include \"Classes/iPhone_Sensors.h\"", StringComparison.Ordinal) ) {
+                    return new string[] {
+                        "\t#include \"iPhone_Sensors.h\"",
+                    };
+                }
+                return new string[] { line };
+            }, () => {
+                return "\nextern \"C\" NSArray<NSString*>* GetLaunchImageNames(UIUserInterfaceIdiom idiom, const OrientationMask&supportedOrientations, const CGSize&screenSize, ScreenOrientation orient, float scale) {\n\treturn @[];\n\n}";
             });
         }
 
@@ -156,6 +177,11 @@ namespace Rocket.Editor {
             if ( PlayerSettings.iOS.sdkVersion == iOSSdkVersion.DeviceSDK ) {
                 AddFrameworksToProject(pbx, pathToBuiltProject);
             }
+            else {
+                AddDylibsToProject(pbx, pathToBuiltProject);
+            }
+
+            AddCopyDataPhaseToProject(pbx);
 
             pbx.WriteToFile(pbxPath);
         }
@@ -198,6 +224,45 @@ namespace Rocket.Editor {
             }
         }
 
+        private static void AddDylibsToProject(PBXProject pbx, string pathToSrcProject) {
+            var targetGuid = pbx.TargetGuidByName(Build.XCTargetName);
+
+            var srcPath = Path.Combine(pathToSrcProject, "Libraries");
+            var relativeSrcPath = Path.Combine("..", pathToSrcProject.Remove(0, pathToSrcProject.LastIndexOf("Unity", StringComparison.OrdinalIgnoreCase)), "Libraries");
+
+            var dstPath = Path.Combine(Build.XCTargetName, "Unity", Path.GetFileName(pathToSrcProject), "Libraries");
+
+            foreach ( var dylibPath in Directory.GetFiles(srcPath, "*.dylib") ) {
+                var dylib = dylibPath.Substring(srcPath.Length).TrimStart(Path.DirectorySeparatorChar);
+                var relativePath = Path.Combine(relativeSrcPath, dylib);
+                var pathInProj = Path.Combine(dstPath, dylib);
+
+                if ( !pbx.ContainsFileByProjectPath(pathInProj) ) {
+                    pbx.AddFileToBuild(targetGuid, pbx.AddFile(relativePath, pathInProj, PBXSourceTree.Source));
+                }
+            }
+
+            var phaseName = "Embed Unity Dylibs (Simulator Only)";
+            var shell = "/bin/sh";
+            var script = "if [[ \"${ARCHS}\" = \"x86_64\" ]]; then\n    cp -f ${UNITY_BUILD_DIR}/Libraries/*.dylib \"${TARGET_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}\";\nfi\n";
+
+            if ( pbx.GetShellScriptBuildPhaseForTarget(targetGuid, phaseName, shell, script) == null ) {
+                pbx.AddShellScriptBuildPhase(targetGuid, phaseName, shell, script);
+            }
+        }
+
+        private static void AddCopyDataPhaseToProject(PBXProject pbx) {
+            var targetGuid = pbx.TargetGuidByName(Build.XCTargetName);
+
+            var phaseName = "Copy Unity Data";
+            var shell = "/bin/sh";
+            var script = "rm -rf \"${TARGET_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Data\";\ncp -Rf \"${UNITY_BUILD_DIR}/Data\" \"${TARGET_BUILD_DIR}/${PRODUCT_NAME}.${WRAPPER_EXTENSION}/Data\";\n";
+
+            if ( pbx.GetShellScriptBuildPhaseForTarget(targetGuid, phaseName, shell, script) == null ) {
+                pbx.AddShellScriptBuildPhase(targetGuid, phaseName, shell, script);
+            }
+        }
+
         private static IEnumerable<string> GetFilesRelative(string directory) {
             var excludedDirectories = new List<string> {
                 "libil2cpp" + Path.DirectorySeparatorChar,
@@ -206,12 +271,18 @@ namespace Rocket.Editor {
             var excludedFileTypes = new List<string> {
                 ".h",
                 ".a",
+                ".dylib",
             };
 
             var excludedFiles = new List<string> {
                 "main.mm",
                 "SplashScreen.mm",
             };
+
+            // Only simulator builds build engine as a dylib
+            if ( PlayerSettings.iOS.sdkVersion == iOSSdkVersion.DeviceSDK ) {
+                excludedFiles.Add("DynamicLibEngineAPI.mm");
+            }
 
             if ( Directory.Exists(directory) ) {
                 foreach ( var path in Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories) ) {

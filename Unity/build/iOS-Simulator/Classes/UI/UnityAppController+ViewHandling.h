@@ -45,15 +45,18 @@
 
 // handling of changing ViewControllers:
 // willStartWithViewController: will be called on startup, when creating view hierarchy
-// transitionToViewController:fromViewController: will be called when user changes Screen.orientation
-//   and we are forced to change root controller.
+// willTransitionToViewController:fromViewController: didTransitionToViewController:fromViewController:
+// are called before/after we are doing some magic to switch to new root controller due to forced orientation change
+
 // by default:
 // willStartWithViewController: will make _unityView as root view
-// transitionToViewController:fromViewController: will simply move _rootView to a different controller
-// you can use both to tweak view hierarchy if needed
+// willTransitionToViewController:fromViewController: will do nothing
+// didTransitionToViewController:fromViewController: will send orientation events to unity view
+// you can use them to tweak view hierarchy if needed
 
 - (void)willStartWithViewController:(UIViewController*)controller;
 - (void)willTransitionToViewController:(UIViewController*)toController fromViewController:(UIViewController*)fromController;
+- (void)didTransitionToViewController:(UIViewController*)toController fromViewController:(UIViewController*)fromController;
 
 
 // override this if you want to have custom snapshot view.
@@ -98,10 +101,5 @@
 - (void)checkOrientationRequest;
 
 - (void)orientUnity:(UIInterfaceOrientation)orient __deprecated_msg("use orientInterface instead.");
-
-// force iOS to switch to newly enabled orientation or away from disabled
-// orientation. [UIViewController attemptRotationToDeviceOrientation] is
-// insufficient for this purpose
-- (void)forceAutorotatingControllerToRefreshEnabledOrientationsIfNeeded;
 @end
 #endif

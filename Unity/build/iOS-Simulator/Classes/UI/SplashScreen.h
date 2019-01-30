@@ -3,11 +3,15 @@
 #include "UnityViewControllerBase.h"
 
 
-@interface SplashScreen : UIImageView {}
+@interface SplashScreen : UIImageView
+{
+}
 + (SplashScreen*)Instance;
 @end
 
-@interface SplashScreenController : UnityViewControllerBase {}
+@interface SplashScreenController : UnityViewControllerBase
+{
+}
 + (SplashScreenController*)Instance;
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator;
 @end

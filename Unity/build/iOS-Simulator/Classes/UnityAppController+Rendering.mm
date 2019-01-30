@@ -57,13 +57,8 @@ static bool _enableRunLoopAcceptInput = false;
     bool ignoreInput = [[UIApplication sharedApplication] isIgnoringInteractionEvents];
     if (!ignoreInput && _enableRunLoopAcceptInput)
     {
-        // Additional acceptInput call crashes on iOS8- unless using invalid NSRunLoopCommonModes, while on iOS10 that mode
-        // produces warnings and does not improve touch event delivery, so we need to differentiate by iOS version.
-        // Note: Starting with iOS 10 there's a typedef NSRunLoopMode used instead of NSString
-        static NSString* inputMode = (_ios90orNewer ? NSDefaultRunLoopMode : NSRunLoopCommonModes);
-        static NSDate* past = [NSDate date];
-
-        [[NSRunLoop currentRunLoop] acceptInputForMode: inputMode beforeDate: past];
+        static NSDate* past = [NSDate dateWithTimeIntervalSince1970: 0]; // the oldest date we can get
+        [[NSRunLoop currentRunLoop] acceptInputForMode: NSDefaultRunLoopMode beforeDate: past];
     }
 #endif
 }
@@ -247,16 +242,20 @@ static int SelectRenderingAPIImpl()
     return 0;
 }
 
-extern "C" NSBundle*            UnityGetMetalBundle()       {
+extern "C" NSBundle*            UnityGetMetalBundle()
+{
     return _MetalBundle;
 }
+
 extern "C" MTLDeviceRef         UnityGetMetalDevice()       { return _MetalDevice; }
 extern "C" MTLCommandQueueRef   UnityGetMetalCommandQueue() { return ((UnityDisplaySurfaceMTL*)GetMainDisplaySurface())->commandQueue; }
 extern "C" MTLCommandQueueRef   UnityGetMetalDrawableCommandQueue() { return ((UnityDisplaySurfaceMTL*)GetMainDisplaySurface())->drawableCommandQueue; }
 
-extern "C" EAGLContext*         UnityGetDataContextEAGL()   {
+extern "C" EAGLContext*         UnityGetDataContextEAGL()
+{
     return _GlesContext;
 }
+
 extern "C" int                  UnitySelectedRenderingAPI() { return _renderingAPI; }
 
 extern "C" UnityRenderBufferHandle  UnityBackbufferColor()      { return GetMainDisplaySurface()->unityColorBuffer; }

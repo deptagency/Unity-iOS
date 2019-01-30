@@ -49,11 +49,6 @@ extern bool _supportsMSAA;
 #endif
 
     [self onUpdateSurfaceSize: frame.size];
-
-#if UNITY_CAN_USE_METAL
-    if (UnitySelectedRenderingAPI() == apiMetal)
-        ((CAMetalLayer*)self.layer).framebufferOnly = NO;
-#endif
 }
 
 - (id)initWithFrame:(CGRect)frame scaleFactor:(CGFloat)scale;
@@ -104,6 +99,7 @@ extern bool _supportsMSAA;
     int requestedMSAA = UnityGetDesiredMSAASampleCount(MSAA_DEFAULT_SAMPLE_COUNT);
     int requestedSRGB = UnityGetSRGBRequested();
     int requestedWideColor = UnityGetWideColorRequested();
+    int requestedMemorylessDepth = UnityMetalMemorylessDepth();
 
     UnityDisplaySurfaceBase* surf = GetMainDisplaySurface();
 
@@ -113,7 +109,8 @@ extern bool _supportsMSAA;
         ||  (_supportsMSAA && surf->msaaSamples != requestedMSAA)
         ||  surf->srgb != requestedSRGB
         ||  surf->wideColor != requestedWideColor
-        )
+        ||  surf->memorylessDepth != requestedMemorylessDepth
+    )
     {
         [self recreateRenderingSurface];
     }
@@ -128,12 +125,15 @@ extern bool _supportsMSAA;
 
         RenderingSurfaceParams params =
         {
-            UnityGetDesiredMSAASampleCount(MSAA_DEFAULT_SAMPLE_COUNT),
-            (int)requestedW, (int)requestedH,
-            UnityGetSRGBRequested(),
-            UnityGetWideColorRequested(),
-            UnityMetalFramebufferOnly(),
-            UnityDisableDepthAndStencilBuffers(), 0
+            .msaaSampleCount        = UnityGetDesiredMSAASampleCount(MSAA_DEFAULT_SAMPLE_COUNT),
+            .renderW                = (int)requestedW,
+            .renderH                = (int)requestedH,
+            .srgb                   = UnityGetSRGBRequested(),
+            .wideColor              = UnityGetWideColorRequested(),
+            .metalFramebufferOnly   = UnityMetalFramebufferOnly(),
+            .metalMemorylessDepth   = UnityMetalMemorylessDepth(),
+            .disableDepthAndStencil = UnityDisableDepthAndStencilBuffers(),
+            .useCVTextureCache      = 0,
         };
 
         APP_CONTROLLER_RENDER_PLUGIN_METHOD_ARG(onBeforeMainDisplaySurfaceRecreate, &params);
@@ -224,10 +224,13 @@ CGRect ComputeSafeArea(UIView* view)
     screenRect.size.height -= insets.top + insets.bottom;
 
     float scale = view.contentScaleFactor;
-    screenRect.origin.x *= scale;
-    screenRect.origin.y *= scale;
-    screenRect.size.width *= scale;
-    screenRect.size.height *= scale;
+
+    // Truncate safe area size because in some cases (for example when Display zoom is turned on)
+    // it might become larger than Screen.width/height which are returned as ints.
+    screenRect.origin.x = (unsigned)(screenRect.origin.x * scale);
+    screenRect.origin.y = (unsigned)(screenRect.origin.y * scale);
+    screenRect.size.width = (unsigned)(screenRect.size.width * scale);
+    screenRect.size.height = (unsigned)(screenRect.size.height * scale);
     return screenRect;
 }
 #endif // Modified by PostBuild.cs

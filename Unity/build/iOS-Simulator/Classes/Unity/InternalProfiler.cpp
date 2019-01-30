@@ -106,8 +106,8 @@ namespace
     UnityFrameStats _unityFrameStats;
 }
 
-extern "C"  int64_t UnityScriptingGetUsedSize();
-extern "C"  int64_t UnityScriptingGetHeapSize();
+extern "C" int64_t UnityScriptingGetUsedSize();
+extern "C" int64_t UnityScriptingGetHeapSize();
 static      void    Profiler_SetupScriptingProfile();
 
 void Profiler_InitProfiler()
@@ -241,61 +241,61 @@ void Profiler_EndMSAAResolve()
 
 extern "C"
 {
-enum ScriptingGCEvent
-{
-    SCRIPTING_GC_EVENT_START,
-    SCRIPTING_GC_EVENT_MARK_START,
-    SCRIPTING_GC_EVENT_MARK_END,
-    SCRIPTING_GC_EVENT_RECLAIM_START,
-    SCRIPTING_GC_EVENT_RECLAIM_END,
-    SCRIPTING_GC_EVENT_END,
-    SCRIPTING_GC_EVENT_PRE_STOP_WORLD,
-    SCRIPTING_GC_EVENT_POST_STOP_WORLD,
-    SCRIPTING_GC_EVENT_PRE_START_WORLD,
-    SCRIPTING_GC_EVENT_POST_START_WORLD
-};
+    enum ScriptingGCEvent
+    {
+        SCRIPTING_GC_EVENT_START,
+        SCRIPTING_GC_EVENT_MARK_START,
+        SCRIPTING_GC_EVENT_MARK_END,
+        SCRIPTING_GC_EVENT_RECLAIM_START,
+        SCRIPTING_GC_EVENT_RECLAIM_END,
+        SCRIPTING_GC_EVENT_END,
+        SCRIPTING_GC_EVENT_PRE_STOP_WORLD,
+        SCRIPTING_GC_EVENT_POST_STOP_WORLD,
+        SCRIPTING_GC_EVENT_PRE_START_WORLD,
+        SCRIPTING_GC_EVENT_POST_START_WORLD
+    };
 
-enum ScriptingProfileFlags
-{
-    SCRIPTING_PROFILE_NONE              = 0,
-    SCRIPTING_PROFILE_APPDOMAIN_EVENTS  = 1 << 0,
-    SCRIPTING_PROFILE_ASSEMBLY_EVENTS   = 1 << 1,
-    SCRIPTING_PROFILE_MODULE_EVENTS     = 1 << 2,
-    SCRIPTING_PROFILE_CLASS_EVENTS      = 1 << 3,
-    SCRIPTING_PROFILE_JIT_COMPILATION   = 1 << 4,
-    SCRIPTING_PROFILE_INLINING          = 1 << 5,
-    SCRIPTING_PROFILE_EXCEPTIONS        = 1 << 6,
-    SCRIPTING_PROFILE_ALLOCATIONS       = 1 << 7,
-    SCRIPTING_PROFILE_GC                = 1 << 8,
-    SCRIPTING_PROFILE_THREADS           = 1 << 9,
-    SCRIPTING_PROFILE_REMOTING          = 1 << 10,
-    SCRIPTING_PROFILE_TRANSITIONS       = 1 << 11,
-    SCRIPTING_PROFILE_ENTER_LEAVE       = 1 << 12,
-    SCRIPTING_PROFILE_COVERAGE          = 1 << 13,
-    SCRIPTING_PROFILE_INS_COVERAGE      = 1 << 14,
-    SCRIPTING_PROFILE_STATISTICAL       = 1 << 15,
-    SCRIPTING_PROFILE_METHOD_EVENTS     = 1 << 16,
-    SCRIPTING_PROFILE_MONITOR_EVENTS    = 1 << 17,
-    SCRIPTING_PROFILE_IOMAP_EVENTS      = 1 << 18,     /* this should likely be removed, too */
-    SCRIPTING_PROFILE_GC_MOVES          = 1 << 19,
-};
+    enum ScriptingProfileFlags
+    {
+        SCRIPTING_PROFILE_NONE              = 0,
+        SCRIPTING_PROFILE_APPDOMAIN_EVENTS  = 1 << 0,
+        SCRIPTING_PROFILE_ASSEMBLY_EVENTS   = 1 << 1,
+        SCRIPTING_PROFILE_MODULE_EVENTS     = 1 << 2,
+        SCRIPTING_PROFILE_CLASS_EVENTS      = 1 << 3,
+        SCRIPTING_PROFILE_JIT_COMPILATION   = 1 << 4,
+        SCRIPTING_PROFILE_INLINING          = 1 << 5,
+        SCRIPTING_PROFILE_EXCEPTIONS        = 1 << 6,
+        SCRIPTING_PROFILE_ALLOCATIONS       = 1 << 7,
+        SCRIPTING_PROFILE_GC                = 1 << 8,
+        SCRIPTING_PROFILE_THREADS           = 1 << 9,
+        SCRIPTING_PROFILE_REMOTING          = 1 << 10,
+        SCRIPTING_PROFILE_TRANSITIONS       = 1 << 11,
+        SCRIPTING_PROFILE_ENTER_LEAVE       = 1 << 12,
+        SCRIPTING_PROFILE_COVERAGE          = 1 << 13,
+        SCRIPTING_PROFILE_INS_COVERAGE      = 1 << 14,
+        SCRIPTING_PROFILE_STATISTICAL       = 1 << 15,
+        SCRIPTING_PROFILE_METHOD_EVENTS     = 1 << 16,
+        SCRIPTING_PROFILE_MONITOR_EVENTS    = 1 << 17,
+        SCRIPTING_PROFILE_IOMAP_EVENTS      = 1 << 18, /* this should likely be removed, too */
+        SCRIPTING_PROFILE_GC_MOVES          = 1 << 19,
+    };
 
-struct MemoryProfiler
-{
-    int64_t gc_total_time;
-    int64_t gc_mark_time;
-    int64_t gc_reclaim_time;
-    int64_t gc_stop_world_time;
-    int64_t gc_start_world_time;
-};
+    struct MemoryProfiler
+    {
+        int64_t gc_total_time;
+        int64_t gc_mark_time;
+        int64_t gc_reclaim_time;
+        int64_t gc_stop_world_time;
+        int64_t gc_start_world_time;
+    };
 
-typedef void (*UnityScriptingProfileFunc)(void* /*MemoryProfiler*/ prof);
-typedef void (*UnityScriptingProfileGCFunc)(void* /*MemoryProfiler*/ prof, int event, int generation);
-typedef void (*UnityScriptingProfileGCResizeFunc)(void* /*MemoryProfiler*/ prof, int64_t new_size);
+    typedef void (*UnityScriptingProfileFunc)(void* /*MemoryProfiler*/ prof);
+    typedef void (*UnityScriptingProfileGCFunc)(void* /*MemoryProfiler*/ prof, int event, int generation);
+    typedef void (*UnityScriptingProfileGCResizeFunc)(void* /*MemoryProfiler*/ prof, int64_t new_size);
 
-void    UnityScriptingProfilerInstall(void* /*MemoryProfiler*/ prof, UnityScriptingProfileFunc shutdown_callback);
-void    UnityScriptingProfilerInstallGC(UnityScriptingProfileGCFunc callback, UnityScriptingProfileGCResizeFunc heap_resize_callback);
-void    UnityScriptingProfilerSetEvents(int /*ScriptingProfileFlags*/ events);
+    void    UnityScriptingProfilerInstall(void* /*MemoryProfiler*/ prof, UnityScriptingProfileFunc shutdown_callback);
+    void    UnityScriptingProfilerInstallGC(UnityScriptingProfileGCFunc callback, UnityScriptingProfileGCResizeFunc heap_resize_callback);
+    void    UnityScriptingProfilerSetEvents(int /*ScriptingProfileFlags*/ events);
 }
 
 
@@ -354,7 +354,7 @@ static void gc_event(void* profiler_, int event, int generation)
             MachToMillisecondsDelta(profiler->gc_reclaim_time),
             MachToMillisecondsDelta(profiler->gc_start_world_time),
             MachToMillisecondsDelta(profiler->gc_total_time)
-            );
+        );
     }
 #endif
 }

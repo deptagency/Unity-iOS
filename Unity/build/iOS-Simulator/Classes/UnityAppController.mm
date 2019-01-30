@@ -50,8 +50,7 @@ UnityAppController* _UnityAppController = nil;
 #define DISABLE_TOUCH_DELAYS 1
 
 // we keep old bools around to support "old" code that might have used them
-bool _ios42orNewer = false, _ios43orNewer = false, _ios50orNewer = false, _ios60orNewer = false, _ios70orNewer = false;
-bool _ios80orNewer = false, _ios81orNewer = false, _ios82orNewer = false, _ios83orNewer = false, _ios90orNewer = false, _ios91orNewer = false;
+bool _ios81orNewer = false, _ios82orNewer = false, _ios83orNewer = false, _ios90orNewer = false, _ios91orNewer = false;
 bool _ios100orNewer = false, _ios101orNewer = false, _ios102orNewer = false, _ios103orNewer = false;
 bool _ios110orNewer = false, _ios111orNewer = false, _ios112orNewer = false;
 
@@ -106,13 +105,13 @@ NSInteger _forceInterfaceOrientationMask = 0;
         // NB: methods table is initied at load (before this call), so it is ok to check for override
         NSAssert(![self respondsToSelector: @selector(createUnityViewImpl)],
             @"createUnityViewImpl is deprecated and will not be called. Override createUnityView"
-            );
+        );
         NSAssert(![self respondsToSelector: @selector(createViewHierarchyImpl)],
             @"createViewHierarchyImpl is deprecated and will not be called. Override willStartWithViewController"
-            );
+        );
         NSAssert(![self respondsToSelector: @selector(createViewHierarchy)],
             @"createViewHierarchy is deprecated and will not be implemented. Use createUI"
-            );
+        );
     }
     return self;
 }
@@ -225,26 +224,23 @@ extern "C" void UnityRequestQuit()
 
 #endif
 
-- (BOOL)application:(UIApplication*)application openURL:(NSURL*)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation
+// UIApplicationOpenURLOptionsKey was added only in ios10 sdk, while we still support ios9 sdk
+- (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<NSString*, id>*)options
 {
-    NSMutableArray* keys    = [NSMutableArray arrayWithCapacity: 3];
-    NSMutableArray* values  = [NSMutableArray arrayWithCapacity: 3];
+    id sourceApplication = options[UIApplicationOpenURLOptionsSourceApplicationKey], annotation = options[UIApplicationOpenURLOptionsAnnotationKey];
 
-    #define ADD_ITEM(item)  do{ if(item) {[keys addObject:@#item]; [values addObject:item];} }while(0)
+    NSMutableDictionary<NSString*, id>* notifData = [NSMutableDictionary dictionaryWithCapacity: 3];
+    if (url) notifData[@"url"] = url;
+    if (sourceApplication) notifData[@"sourceApplication"] = sourceApplication;
+    if (annotation) notifData[@"annotation"] = annotation;
 
-    ADD_ITEM(url);
-    ADD_ITEM(sourceApplication);
-    ADD_ITEM(annotation);
-
-    #undef ADD_ITEM
-
-    NSDictionary* notifData = [NSDictionary dictionaryWithObjects: values forKeys: keys];
     AppController_SendNotificationWithArg(kUnityOnOpenURL, notifData);
     return YES;
 }
 
 - (BOOL)application:(UIApplication*)application willFinishLaunchingWithOptions:(NSDictionary*)launchOptions
 {
+    AppController_SendNotificationWithArg(kUnityWillFinishLaunchingWithOptions, launchOptions);
     return YES;
 }
 
@@ -404,6 +400,12 @@ extern "C" void UnityRequestQuit()
     SensorsCleanup();
 }
 
+- (void)application:(UIApplication*)application handleEventsForBackgroundURLSession:(nonnull NSString *)identifier completionHandler:(nonnull void (^)())completionHandler
+{
+    NSDictionary* arg = @{identifier: completionHandler};
+    AppController_SendNotificationWithArg(kUnityHandleEventsForBackgroundURLSession, arg);
+}
+
 @end
 
 
@@ -422,15 +424,21 @@ void AppController_SendUnityViewControllerNotification(NSString* name)
     [[NSNotificationCenter defaultCenter] postNotificationName: name object: UnityGetGLViewController()];
 }
 
-extern "C" UIWindow*            UnityGetMainWindow()        {
+extern "C" UIWindow*            UnityGetMainWindow()
+{
     return GetAppController().mainDisplay.window;
 }
-extern "C" UIViewController*    UnityGetGLViewController()  {
+
+extern "C" UIViewController*    UnityGetGLViewController()
+{
     return GetAppController().rootViewController;
 }
-extern "C" UIView*              UnityGetGLView()            {
+
+extern "C" UIView*              UnityGetGLView()
+{
     return GetAppController().unityView;
 }
+
 extern "C" ScreenOrientation    UnityCurrentOrientation()   { return GetAppController().unityView.contentOrientation; }
 
 
@@ -478,12 +486,7 @@ static bool isDebuggerAttachedToConsole(void)
 
 void UnityInitTrampoline()
 {
-#if ENABLE_CRASH_REPORT_SUBMISSION
-    SubmitCrashReportsAsync();
-#endif
     InitCrashHandling();
-
-    _ios42orNewer = _ios43orNewer = _ios50orNewer = _ios60orNewer = _ios70orNewer = _ios80orNewer = true;
 
     NSString* version = [[UIDevice currentDevice] systemVersion];
 #define CHECK_VER(s) [version compare: s options: NSNumericSearch] != NSOrderedAscending
@@ -503,6 +506,18 @@ void UnityInitTrampoline()
 #endif
 }
 
+extern "C" bool UnityiOS81orNewer() { return _ios81orNewer; }
+extern "C" bool UnityiOS82orNewer() { return _ios82orNewer; }
+extern "C" bool UnityiOS90orNewer() { return _ios90orNewer; }
+extern "C" bool UnityiOS91orNewer() { return _ios91orNewer; }
+extern "C" bool UnityiOS100orNewer() { return _ios100orNewer; }
+extern "C" bool UnityiOS101orNewer() { return _ios101orNewer; }
+extern "C" bool UnityiOS102orNewer() { return _ios102orNewer; }
+extern "C" bool UnityiOS103orNewer() { return _ios103orNewer; }
+extern "C" bool UnityiOS110orNewer() { return _ios110orNewer; }
+extern "C" bool UnityiOS111orNewer() { return _ios111orNewer; }
+extern "C" bool UnityiOS112orNewer() { return _ios112orNewer; }
+
 // sometimes apple adds new api with obvious fallback on older ios.
 // in that case we simply add these functions ourselves to simplify code
 static void AddNewAPIImplIfNeeded()
@@ -514,14 +529,6 @@ static void AddNewAPIImplIfNeeded()
             UNITY_OBJC_CALL_ON_SELF(_self, @selector(setFrameInterval:), SetFrameIntervalFunc, (int)(60.0f / fps));
         });
         class_replaceMethod([CADisplayLink class], @selector(setPreferredFramesPerSecond:), CADisplayLink_setPreferredFramesPerSecond_IMP, CADisplayLink_setPreferredFramesPerSecond_Enc);
-    }
-
-    if (![[UIScreen class] instancesRespondToSelector: @selector(nativeScale)])
-    {
-        IMP UIScreen_NativeScale_IMP = imp_implementationWithBlock(^CGFloat(id _self) {
-            return ((UIScreen*)_self).scale;
-        });
-        class_replaceMethod([UIScreen class], @selector(nativeScale), UIScreen_NativeScale_IMP, UIScreen_nativeScale_Enc);
     }
 
     if (![[UIScreen class] instancesRespondToSelector: @selector(maximumFramesPerSecond)])

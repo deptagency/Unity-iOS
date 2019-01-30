@@ -20,7 +20,7 @@ FRAMEWORK_SEARCH_PATHS[config=*] = $(inherited) $(UNITY_FRAMEWORKS_DIR)
 
 // Link with additional frameworks required by Unity
 // Depending on the project, you may need to include additional frameworks here
-OTHER_LDFLAGS[config=*] = $(inherited) -framework AudioToolbox -framework AVFoundation -framework CoreLocation -framework CoreMedia -framework CoreMotion -framework MediaPlayer -framework MediaToolbox -lil2cpp -liPhone-lib;
+OTHER_LDFLAGS[config=*] = $(inherited) -framework AudioToolbox -framework AVFoundation -framework AVKit -framework CoreLocation -framework CoreMedia -framework CoreMotion -framework MediaPlayer -framework MediaToolbox -lil2cpp -liPhone-lib;
 
 // These are required by Unity to initialize il2cpp scripting backend
 OTHER_CFLAGS[config=*] = $(inherited) -DINIT_SCRIPTING_BACKEND=1 -fno-strict-overflow -DRUNTIME_IL2CPP=1 -DNET_4_0;

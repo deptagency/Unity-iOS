@@ -13,18 +13,28 @@
 
 // view controllers constrained to one orientation
 
-@interface UnityPortraitOnlyViewController : UnityViewControllerBase            {}
+@interface UnityPortraitOnlyViewController : UnityViewControllerBase
+{
+}
 @end
-@interface UnityPortraitUpsideDownOnlyViewController : UnityViewControllerBase  {}
+@interface UnityPortraitUpsideDownOnlyViewController : UnityViewControllerBase
+{
+}
 @end
-@interface UnityLandscapeLeftOnlyViewController : UnityViewControllerBase       {}
+@interface UnityLandscapeLeftOnlyViewController : UnityViewControllerBase
+{
+}
 @end
-@interface UnityLandscapeRightOnlyViewController : UnityViewControllerBase      {}
+@interface UnityLandscapeRightOnlyViewController : UnityViewControllerBase
+{
+}
 @end
 
 // this is default view controller implementation (autorotation enabled)
 
-@interface UnityDefaultViewController : UnityViewControllerBase                 {}
+@interface UnityDefaultViewController : UnityViewControllerBase
+{
+}
 @end
 
 NSUInteger EnabledAutorotationInterfaceOrientations();

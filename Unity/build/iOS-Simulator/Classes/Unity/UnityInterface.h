@@ -114,6 +114,7 @@ int     UnityIsOrientationEnabled(unsigned /*ScreenOrientation*/ orientation);
 
 int     UnityHasOrientationRequest();
 int     UnityShouldAutorotate();
+int     UnityShouldChangeAllowedOrientations();
 int     UnityRequestedScreenOrientation(); // returns ScreenOrientation
 void    UnityOrientationRequestWasCommitted();
 
@@ -139,6 +140,7 @@ int     UnityGetDeferSystemGesturesLeftEdge();
 int     UnityGetDeferSystemGesturesRightEdge();
 int     UnityGetHideHomeButton();
 int     UnityMetalFramebufferOnly();
+int     UnityMetalMemorylessDepth();
 
 
 // push notifications
@@ -283,7 +285,7 @@ EAGLContext*        UnityGetDataContextEAGL();
 UnityRenderBufferHandle UnityBackbufferColor();
 UnityRenderBufferHandle UnityBackbufferDepth();
 
-int             UnityGetWideColorSupported();
+int             UnityIsWideColorSupported();
 
 // UI/ActivityIndicator.mm
 void            UnityStartActivityIndicator();
@@ -308,7 +310,6 @@ int             UnityKeyboard_CanSetSelection();
 void            UnityKeyboard_SetSelection(int location, int range);
 
 // UI/UnityViewControllerBase.mm
-void            UnityNotifyAutoOrientationChange();
 void            UnityNotifyHideHomeButtonChange();
 void            UnityNotifyDeferSystemGesturesChange();
 
@@ -318,8 +319,8 @@ int             UnityGetAVCapturePermission(int captureTypes);
 void            UnityRequestAVCapturePermission(int captureTypes);
 
 // Unity/CameraCapture.mm
-void            UnityEnumVideoCaptureDevices(void* udata, void(*callback)(void* udata, const char* name, int frontFacing));
-void*           UnityInitCameraCapture(int device, int w, int h, int fps, void* udata);
+void            UnityEnumVideoCaptureDevices(void* udata, void(*callback)(void* udata, const char* name, int frontFacing, int autoFocusPointSupported, int kind, const int* resolutions, int resCount));
+void*           UnityInitCameraCapture(int device, int w, int h, int fps, int isDepth, void* udata);
 void            UnityStartCameraCapture(void* capture);
 void            UnityPauseCameraCapture(void* capture);
 void            UnityStopCameraCapture(void* capture);
@@ -327,6 +328,7 @@ void            UnityCameraCaptureExtents(void* capture, int* w, int* h);
 void            UnityCameraCaptureReadToMemory(void* capture, void* dst, int w, int h);
 int             UnityCameraCaptureVideoRotationDeg(void* capture);
 int             UnityCameraCaptureVerticallyMirrored(void* capture);
+int             UnityCameraCaptureSetAutoFocusPoint(void* capture, float x, float y);
 
 
 // Unity/DeviceSettings.mm

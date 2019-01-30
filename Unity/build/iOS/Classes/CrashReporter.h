@@ -28,8 +28,5 @@
 #define ENABLE_CUSTOM_CRASH_REPORTER 0
 #endif
 
-
-void WaitWhileCrashReportsAreSent();
-void SubmitCrashReportsAsync();
-void UnityInstallPostCrashCallback();
+extern "C" void UnityInstallPostCrashCallback();
 void InitCrashHandling();

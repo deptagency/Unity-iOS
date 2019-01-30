@@ -1,6 +1,8 @@
 #pragma once
 
-@interface UnityRenderingView : UIView {}
+@interface UnityRenderingView : UIView
+{
+}
 + (void)InitializeForAPI:(UnityRenderingAPI)api;
 @end
 

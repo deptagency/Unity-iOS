@@ -12,8 +12,16 @@ void UnityInitTrampoline();
 // WARNING: this MUST be c decl (NSString ctor will be called after +load, so we cant really change its value)
 const char* AppControllerClassName = "UnityAppController";
 
+#if UNITY_USES_DYNAMIC_PLAYER_LIB
+extern "C" void SetAllUnityFunctionsForDynamicPlayerLib();
+#endif
+
 int main(int argc, char* argv[])
 {
+#if UNITY_USES_DYNAMIC_PLAYER_LIB
+    SetAllUnityFunctionsForDynamicPlayerLib();
+#endif
+
     UnityInitStartupTime();
     @autoreleasepool
     {

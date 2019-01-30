@@ -15,29 +15,14 @@
 #endif
 
 #include "ObjCRuntime.h"
-extern Class MTLTextureDescriptorClass;
+extern "C" Class MTLTextureDescriptorClass;
 extern Class MTLHeapDescriptorClass;
+
 
 extern "C" void UnityAddNewMetalAPIImplIfNeeded(id<MTLDevice> device)
 {
-    if (![device respondsToSelector: @selector(supportsTextureSampleCount:)])
-    {
-        IMP MTLDevice_supportsTextureSampleCount_IMP = imp_implementationWithBlock(^BOOL(id _self, NSUInteger sampleCount) {
-            return sampleCount == 1 || sampleCount == 4;
-        });
-        class_replaceMethod(object_getClass(device), @selector(supportsTextureSampleCount:), MTLDevice_supportsTextureSampleCount_IMP, MTLDevice_supportsTextureSampleCount_Enc);
-    }
-
-    // usage is dynamic property so there will be no selectors, that is why we check for property itself
-    // if property is missed it is fine to add fake selectors
-    if (class_getProperty(MTLTextureDescriptorClass, "usage") == 0)
-    {
-        IMP MTLTextureDescriptor_SetUsage_IMP = imp_implementationWithBlock(^void(id _self, MTLTextureUsage usage) {});
-        class_replaceMethod(MTLTextureDescriptorClass, @selector(setUsage:), MTLTextureDescriptor_SetUsage_IMP, MTLTextureDescriptor_setUsage_Enc);
-
-        IMP MTLTextureDescriptor_GetUsage_IMP = imp_implementationWithBlock(^MTLTextureUsage(id _self) { return MTLTextureUsageUnknown; });
-        class_replaceMethod(MTLTextureDescriptorClass, @selector(usage), MTLTextureDescriptor_GetUsage_IMP, MTLTextureDescriptor_usage_Enc);
-    }
+    // we were adding [MTLDevice supportsTextureSampleCount:] and MTLTextureDescriptor.usage
+    // but after we switched to ios 9.0 as min target this is no longer needed
 
     if (class_getProperty(MTLHeapDescriptorClass, "storageMode") == 0)
     {
@@ -64,7 +49,7 @@ static MTLPixelFormat GetColorFormatForSurface(const UnityDisplaySurfaceMTL* sur
 {
     MTLPixelFormat colorFormat = surface->srgb ? MTLPixelFormatBGRA8Unorm_sRGB : MTLPixelFormatBGRA8Unorm;
 #if (PLATFORM_IOS && UNITY_HAS_IOSSDK_10_0) || (PLATFORM_TVOS && UNITY_HAS_TVOSSDK_11_0)
-    if (surface->wideColor)
+    if (surface->wideColor && UnityIsWideColorSupported())
         colorFormat = surface->srgb ? MTLPixelFormatBGR10_XR_sRGB : MTLPixelFormatBGR10_XR;
 #elif PLATFORM_OSX && __MAC_10_12
     if (surface->wideColor)
@@ -212,8 +197,10 @@ extern "C" void DestroyRenderingSurfaceMTL(UnityDisplaySurfaceMTL* surface)
 extern "C" void CreateSharedDepthbufferMTL(UnityDisplaySurfaceMTL* surface)
 {
     DestroySharedDepthbufferMTL(surface);
+    if (surface->disableDepthAndStencil)
+        return;
 
-#if PLATFORM_OSX
+#if PLATFORM_OSX || PLATFORM_TVOS
     MTLPixelFormat pixelFormat = MTLPixelFormatDepth32Float_Stencil8;
 #else
     MTLPixelFormat pixelFormat = MTLPixelFormatDepth32Float;
@@ -222,6 +209,11 @@ extern "C" void CreateSharedDepthbufferMTL(UnityDisplaySurfaceMTL* surface)
     MTLTextureDescriptor* depthTexDesc = [MTLTextureDescriptorClass texture2DDescriptorWithPixelFormat: pixelFormat width: surface->targetW height: surface->targetH mipmapped: NO];
 #if PLATFORM_OSX
     depthTexDesc.resourceOptions = MTLResourceCPUCacheModeDefaultCache | MTLResourceStorageModePrivate;
+#endif
+
+#if (PLATFORM_IOS && UNITY_HAS_IOSSDK_10_0) || (PLATFORM_TVOS && UNITY_HAS_TVOSSDK_10_0)
+    if (surface->memorylessDepth)
+        depthTexDesc.storageMode = MTLStorageModeMemoryless;
 #endif
 
     depthTexDesc.usage = MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead;
@@ -234,7 +226,7 @@ extern "C" void CreateSharedDepthbufferMTL(UnityDisplaySurfaceMTL* surface)
     }
     surface->depthRB = [surface->device newTextureWithDescriptor: depthTexDesc];
 
-#if PLATFORM_OSX
+#if PLATFORM_OSX || PLATFORM_TVOS
     surface->stencilRB = surface->depthRB;
 #else
     MTLTextureDescriptor* stencilTexDesc = [MTLTextureDescriptorClass texture2DDescriptorWithPixelFormat: MTLPixelFormatStencil8 width: surface->targetW height: surface->targetH mipmapped: NO];
@@ -269,7 +261,10 @@ extern "C" void CreateUnityRenderBuffersMTL(UnityDisplaySurfaceMTL* surface)
     else
         surface->unityColorBuffer   = UnityCreateExternalColorSurfaceMTL(surface->unityColorBuffer, surface->systemColorRB, nil, &tgt_desc, surface);
 
-    surface->unityDepthBuffer       = UnityCreateExternalDepthSurfaceMTL(surface->unityDepthBuffer, surface->depthRB, surface->stencilRB, &tgt_desc);
+    if (surface->depthRB)
+        surface->unityDepthBuffer   = UnityCreateExternalDepthSurfaceMTL(surface->unityDepthBuffer, surface->depthRB, surface->stencilRB, &tgt_desc);
+    else
+        surface->unityDepthBuffer   = UnityCreateDummySurface(surface->unityDepthBuffer, false, &tgt_desc);
 
     surface->systemColorBuffer = UnityCreateExternalColorSurfaceMTL(surface->systemColorBuffer, surface->systemColorRB, nil, &sys_desc, surface);
     surface->systemDepthBuffer = UnityCreateDummySurface(surface->systemDepthBuffer, false, &sys_desc);

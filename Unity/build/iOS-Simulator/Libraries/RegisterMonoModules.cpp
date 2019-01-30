@@ -12,7 +12,7 @@ void RegisterAllClasses()
 void RegisterAllStrippedInternalCalls() {}
 
 void InvokeRegisterStaticallyLinkedModuleClasses() {}
-void RegisterStaticallyLinkedModulesGranular() {}
+extern "C" void RegisterStaticallyLinkedModulesGranular() {}
 
 #endif // INIT_SCRIPTING_BACKEND
 

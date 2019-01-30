@@ -114,5 +114,5 @@ inline Quaternion4f QuatRotationFromTo(const Vector3f& src, const Vector3f& dest
     Vector3f c = VecCrossProduct(v0, v1);
 
     return QuatNormalize(QuatMake(
-            c.x * i, c.y * i, c.z * i, s * 0.5f));
+        c.x * i, c.y * i, c.z * i, s * 0.5f));
 }

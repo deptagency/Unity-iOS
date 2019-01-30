@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "UnitySharedDecls.h"
 
 #ifdef __OBJC__
 @class UIScreen;
@@ -128,6 +129,8 @@ typedef enum
     deviceiPhoneXS      = 40,
     deviceiPhoneXSMax   = 41,
     deviceiPhoneXR      = 42,
+    deviceiPadPro11Inch = 43,
+    deviceiPadPro3Gen   = 44,
 
     deviceiPhoneUnknown     = 10001,
     deviceiPadUnknown       = 10002,
@@ -137,22 +140,6 @@ typedef enum
     deviceAppleTV2Gen  = 1002
 }
 DeviceGeneration;
-
-
-// be aware that this enum is shared with unity implementation so you should absolutely not change it
-typedef enum ScreenOrientation
-{
-    orientationUnknown,
-
-    portrait,
-    portraitUpsideDown,
-    landscapeLeft,
-    landscapeRight,
-
-    orientationCount,
-}
-ScreenOrientation;
-
 
 // be aware that this enum is shared with unity implementation so you should absolutely not change it
 typedef enum AppInBackgroundBehavior
@@ -193,22 +180,19 @@ typedef enum KeyboardStatus
 }
 KeyboardStatus;
 
+// misc
 #ifdef __cplusplus
-extern bool _ios42orNewer;
-extern bool _ios43orNewer;
-extern bool _ios50orNewer;
-extern bool _ios60orNewer;
-extern bool _ios70orNewer;
-extern bool _ios80orNewer;
-extern bool _ios81orNewer;
-extern bool _ios82orNewer;
-extern bool _ios90orNewer;
-extern bool _ios91orNewer;
-extern bool _ios100orNewer;
-extern bool _ios101orNewer;
-extern bool _ios102orNewer;
-extern bool _ios103orNewer;
-extern bool _ios110orNewer;
-extern bool _ios111orNewer;
-extern bool _ios112orNewer;
+extern "C" {
+    bool UnityiOS81orNewer();
+    bool UnityiOS82orNewer();
+    bool UnityiOS90orNewer();
+    bool UnityiOS91orNewer();
+    bool UnityiOS100orNewer();
+    bool UnityiOS101orNewer();
+    bool UnityiOS102orNewer();
+    bool UnityiOS103orNewer();
+    bool UnityiOS110orNewer();
+    bool UnityiOS111orNewer();
+    bool UnityiOS112orNewer();
+}
 #endif

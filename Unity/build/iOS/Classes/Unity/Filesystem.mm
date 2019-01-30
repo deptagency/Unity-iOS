@@ -20,13 +20,18 @@ extern "C" const char* UnityApplicationDir()
         return var;                         \
     } while (0)
 
-extern "C" const char* UnityDocumentsDir() {
+extern "C" const char* UnityDocumentsDir()
+{
     RETURN_SPECIAL_DIR(NSDocumentDirectory);
 }
-extern "C" const char* UnityLibraryDir() {
+
+extern "C" const char* UnityLibraryDir()
+{
     RETURN_SPECIAL_DIR(NSLibraryDirectory);
 }
-extern "C" const char* UnityCachesDir() {
+
+extern "C" const char* UnityCachesDir()
+{
     RETURN_SPECIAL_DIR(NSCachesDirectory);
 }
 

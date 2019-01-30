@@ -10,7 +10,7 @@ typedef struct objc_object EAGLContext;
 #endif
 
 
-#define MSAA_DEFAULT_SAMPLE_COUNT 0
+#define MSAA_DEFAULT_SAMPLE_COUNT 1
 
 // in case of rendering to non-native resolution the texture filter we will use for upscale blit
 #define GLES_UPSCALE_FILTER GL_LINEAR

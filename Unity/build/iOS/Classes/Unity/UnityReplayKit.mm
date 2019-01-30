@@ -57,7 +57,9 @@ static UnityReplayKit* _replayKit = nil;
 // to avoid that we create this monstrosity that pokes unity for orientation.
 
 #if PLATFORM_IOS
-@interface UnityReplayKitViewController : UnityViewControllerBase {}
+@interface UnityReplayKitViewController : UnityViewControllerBase
+{
+}
 - (NSUInteger)supportedInterfaceOrientations;
 @end
 @implementation UnityReplayKitViewController

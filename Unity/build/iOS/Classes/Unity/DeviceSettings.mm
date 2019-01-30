@@ -66,7 +66,6 @@ extern "C" const char* UnityVendorIdentifier()
     return _VendorID;
 }
 
-
 // UIDevice properties
 
 #define QUERY_UIDEVICE_PROPERTY(FUNC, PROP)                                         \
@@ -98,6 +97,19 @@ extern "C" const char* UnityDeviceModel()
         char* model = (char*)::malloc(size + 1);
         ::sysctlbyname("hw.machine", model, &size, NULL, 0);
         model[size] = 0;
+
+#if TARGET_OS_SIMULATOR
+        if (!strncmp(model, "i386", 4) || !strncmp(model, "x86_64", 6))
+        {
+            NSString* simModel = [[NSProcessInfo processInfo] environment][@"SIMULATOR_MODEL_IDENTIFIER"];
+            if ([simModel length] > 0)
+            {
+                _DeviceModel = AllocCString(simModel);
+                ::free(model);
+                return _DeviceModel;
+            }
+        }
+#endif
 
         _DeviceModel = AllocCString([NSString stringWithUTF8String: model]);
         ::free(model);
@@ -239,6 +251,14 @@ extern "C" int ParseDeviceGeneration(const char* model)
         else if (rev == 3 || rev == 4)
             return deviceiPadPro10Inch2Gen;
     }
+    else if (!strncmp(model, "iPad8,", 6))
+    {
+        int rev = atoi(model + 6);
+        if (rev >= 1 && rev <= 4)
+            return deviceiPadPro11Inch;
+        else if (rev >= 5)
+            return deviceiPadPro3Gen;
+    }
     // completely unknown hw - just determine form-factor
     else
     {
@@ -274,25 +294,38 @@ extern "C" int UnityDeviceGeneration()
     return _DeviceGeneration;
 }
 
+extern "C" int UnityDeviceSupportedOrientations()
+{
+    int device = UnityDeviceGeneration();
+    int orientations = 0;
+
+    orientations |= (1 << portrait);
+    orientations |= (1 << landscapeLeft);
+    orientations |= (1 << landscapeRight);
+
+    if (device != deviceiPhoneX)
+    {
+        orientations |= (1 << portraitUpsideDown);
+    }
+
+    return orientations;
+}
+
 extern "C" int UnityDeviceIsStylusTouchSupported()
 {
     int deviceGen = UnityDeviceGeneration();
     return (deviceGen == deviceiPadPro1Gen ||
-            deviceGen == deviceiPadPro10Inch1Gen ||
-            deviceGen == deviceiPadPro2Gen ||
-            deviceGen == deviceiPadPro10Inch2Gen) ? 1 : 0;
+        deviceGen == deviceiPadPro10Inch1Gen ||
+        deviceGen == deviceiPadPro2Gen ||
+        deviceGen == deviceiPadPro10Inch2Gen) ? 1 : 0;
 }
 
-extern "C" int UnityDeviceIsWideColorSupported()
+extern "C" int UnityDeviceCanShowWideColor()
 {
     UIScreen* mainScreen = [UIScreen mainScreen];
-    if (![mainScreen respondsToSelector: @selector(traitCollection)])
-        return false;
-
     UITraitCollection* traits = mainScreen.traitCollection;
     if (![traits respondsToSelector: @selector(displayGamut)])
         return false;
-
 #if UNITY_HAS_IOSSDK_10_0 || UNITY_HAS_TVOSSDK_10_0
     return traits.displayGamut == UIDisplayGamutP3;
 #else
@@ -332,7 +365,6 @@ extern "C" float UnityDeviceDPI()
             case deviceiPhoneXS:
             case deviceiPhoneXSMax:
                 _DeviceDPI = 458.0f; break;
-
             // iPad
             case deviceiPad2Gen:
                 _DeviceDPI = 132.0f; break;
@@ -345,6 +377,8 @@ extern "C" float UnityDeviceDPI()
             case deviceiPadPro2Gen:
             case deviceiPadPro10Inch2Gen:
             case deviceiPad5Gen:
+            case deviceiPadPro11Inch:
+            case deviceiPadPro3Gen:
                 _DeviceDPI = 264.0f; break;
 
             // iPad mini

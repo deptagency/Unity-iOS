@@ -31,12 +31,16 @@ static bool gTVRemoteReportsAbsoluteDpadValuesInitialValue = false;
 
 static bool gCompensateSensors = true;
 bool gEnableGyroscope = false;
+extern "C" void UnityEnableGyroscope(bool value) { gEnableGyroscope = value; }
+
 static bool gJoysticksInited = false;
 #define MAX_JOYSTICKS 4
 static bool gPausedJoysticks[MAX_JOYSTICKS] = {false, false, false, false};
 static id gGameControllerClass = nil;
 // This defines the number of maximum acceleration events Unity will queue internally for scripts to access.
-int gMaxQueuedAccelerationEvents = 2 * 60; // 120 events or 2 seconds at 60Hz reporting.
+extern "C" int UnityMaxQueuedAccelerationEvents() { return 2 * 60; } // 120 events or 2 seconds at 60Hz reporting.
+
+static NSMutableSet *pressedButtons = nil;
 
 static ControllerPausedHandler gControllerHandler = ^(GCController *controller)
 {
@@ -51,8 +55,8 @@ static ControllerPausedHandler gControllerHandler = ^(GCController *controller)
     }
 };
 
-bool IsCompensatingSensors() { return gCompensateSensors; }
-void SetCompensatingSensors(bool val) { gCompensateSensors = val; }
+extern "C" bool IsCompensatingSensors() { return gCompensateSensors; }
+extern "C" void SetCompensatingSensors(bool val) { gCompensateSensors = val; }
 
 inline float UnityReorientHeading(float heading)
 {
@@ -91,13 +95,13 @@ inline Vector3f UnityReorientVector3(float x, float y, float z)
         {
             case portraitUpsideDown:
             { res = (Vector3f) {-x, -y, z}; }
-                                            break;
+            break;
             case landscapeLeft:
             { res = (Vector3f) {-y, x, z}; }
-                                           break;
+            break;
             case landscapeRight:
             { res = (Vector3f) {y, -x, z}; }
-                                           break;
+            break;
             default:
             { res = (Vector3f) {x, y, z}; }
         }
@@ -408,6 +412,8 @@ extern "C" void UnityInitJoysticks()
             gAggregatedJoystickState[i].state = false;
         }
 
+        pressedButtons = [[NSMutableSet alloc] init];
+
         gJoysticksInited = true;
     }
 }
@@ -421,15 +427,27 @@ static void ResetAggregatedJoystickState()
 {
     for (int i = 0; i < BTN_COUNT; i++)
     {
-        gAggregatedJoystickState[i].state = false;
+        if ([pressedButtons containsObject: [NSNumber numberWithInteger: gAggregatedJoystickState[i].buttonCode]])
+        {
+            gAggregatedJoystickState[i].state = false;
+        }
     }
+    for (NSNumber *code in pressedButtons)
+    {
+        UnitySetKeyState((int)[code integerValue], false);
+    }
+    [pressedButtons removeAllObjects];
 }
 
 static void SetAggregatedJoystickState()
 {
     for (int i = 0; i < BTN_COUNT; i++)
     {
-        UnitySetKeyState(gAggregatedJoystickState[i].buttonCode, gAggregatedJoystickState[i].state);
+        if (gAggregatedJoystickState[i].state)
+        {
+            UnitySetKeyState(gAggregatedJoystickState[i].buttonCode, gAggregatedJoystickState[i].state);
+            [pressedButtons addObject: [NSNumber numberWithInteger: gAggregatedJoystickState[i].buttonCode]];
+        }
     }
 }
 
@@ -442,9 +460,14 @@ static void ReportAggregatedJoystickButton(int buttonNum, int state)
 
 static void SetJoystickButtonState(int joyNum, int buttonNum, int state)
 {
-    char buf[128];
-    sprintf(buf, "joystick %d button %d", joyNum, buttonNum);
-    UnitySetKeyState(UnityStringToKey(buf), state);
+    if (state)
+    {
+        char buf[128];
+        sprintf(buf, "joystick %d button %d", joyNum, buttonNum);
+        int code = UnityStringToKey(buf);
+        [pressedButtons addObject: [NSNumber numberWithInteger: code]];
+        UnitySetKeyState(code, state);
+    }
 
     ReportAggregatedJoystickButton(buttonNum, state);
 }
@@ -778,7 +801,7 @@ extern "C" void UnityGetNiceKeyname(int key, char* buffer, int maxLen)
 @end
 #endif
 
-void
+extern "C" void
 UnitySetLastLocation(double timestamp,
     float latitude,
     float longitude,
@@ -786,7 +809,7 @@ UnitySetLastLocation(double timestamp,
     float horizontalAccuracy,
     float verticalAccuracy);
 
-void
+extern "C" void
 UnitySetLastHeading(float magneticHeading,
     float trueHeading,
     float rawX, float rawY, float rawZ,
@@ -944,7 +967,7 @@ bool LocationService::IsHeadingUpdatesEnabled()
 #endif
 }
 
-int UnityGetLocationStatus()
+LocationServiceStatus LocationService::GetLocationStatus()
 {
 #if UNITY_USES_LOCATION
     return (LocationServiceStatus)gLocationServiceStatus.locationStatus;
@@ -953,7 +976,7 @@ int UnityGetLocationStatus()
 #endif
 }
 
-int UnityGetHeadingStatus()
+LocationServiceStatus LocationService::GetHeadingStatus()
 {
 #if UNITY_USES_LOCATION
     return (LocationServiceStatus)gLocationServiceStatus.headingStatus;
@@ -983,7 +1006,7 @@ bool LocationService::IsHeadingAvailable()
     UnitySetLastLocation([lastLocation.timestamp timeIntervalSince1970],
         lastLocation.coordinate.latitude, lastLocation.coordinate.longitude, lastLocation.altitude,
         lastLocation.horizontalAccuracy, lastLocation.verticalAccuracy
-        );
+    );
 }
 
 #if PLATFORM_IOS

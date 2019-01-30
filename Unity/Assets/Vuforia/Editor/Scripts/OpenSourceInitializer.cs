@@ -1,3 +1,4 @@
+#if !TARGET_OS_SIMULATOR
 /*===============================================================================
 Copyright (c) 2017-2018 PTC Inc. All Rights Reserved.
 
@@ -63,3 +64,4 @@ public static class OpenSourceInitializer
         }
     }
 }
+#endif

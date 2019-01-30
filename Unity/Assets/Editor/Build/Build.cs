@@ -41,7 +41,7 @@ namespace Rocket.Editor {
             BuildPlayerOptions buildOptions = GetBuildOptions(false);
             buildOptions.locationPathName = "build/iOS";
             buildOptions.target = BuildTarget.iOS;
-            buildOptions.options = BuildOptions.AcceptExternalModificationsToPlayer;
+            buildOptions.options = BuildOptions.StrictMode;
 
             if ( EditorUserBuildSettings.development ) {
                 buildOptions.options |= (BuildOptions.Development | BuildOptions.SymlinkLibraries);
@@ -60,7 +60,7 @@ namespace Rocket.Editor {
             BuildPlayerOptions buildOptions = GetBuildOptions(true);
             buildOptions.locationPathName = "build/iOS-Simulator";
             buildOptions.target = BuildTarget.iOS;
-            buildOptions.options = BuildOptions.AcceptExternalModificationsToPlayer;
+            buildOptions.options = BuildOptions.StrictMode;
 
             if ( EditorUserBuildSettings.development ) {
                 buildOptions.options |= (BuildOptions.Development | BuildOptions.SymlinkLibraries);

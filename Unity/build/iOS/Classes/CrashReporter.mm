@@ -2,14 +2,29 @@
 #if !TARGET_OS_SIMULATOR // Modified by PostBuild.cs
 #import "PLCrashReporter.h"
 #import "CrashReporter.h"
+#include <mach-o/ldsyms.h>
 
-
-extern NSString* GetCrashReportsPath();
-void CrashedCheckBelowForHintsWhy();
+extern "C" NSString* UnityGetCrashReportsPath();
 
 
 static NSUncaughtExceptionHandler* gsCrashReporterUEHandler = NULL;
 
+extern "C" uint8_t* UnityGetAppLoadAddress()
+{
+    // _mh_execute_header points to a mach header, and is located right at the address of where the
+    // app is loaded.
+    return (uint8_t*)&_mh_execute_header;
+}
+
+extern "C" const uint8_t * UnityGetAppLoadCommandAddress()
+{
+    return (const uint8_t*)(&_mh_execute_header + 1);
+}
+
+extern "C" int UnityGetAppLoadCommandCount()
+{
+    return _mh_execute_header.ncmds;
+}
 
 static void SavePendingCrashReport()
 {
@@ -19,7 +34,7 @@ static void SavePendingCrashReport()
     NSFileManager *fm = [NSFileManager defaultManager];
     NSError *error;
 
-    if (![fm createDirectoryAtPath: GetCrashReportsPath() withIntermediateDirectories: YES attributes: nil error: &error])
+    if (![fm createDirectoryAtPath: UnityGetCrashReportsPath() withIntermediateDirectories: YES attributes: nil error: &error])
     {
         ::printf("CrashReporter: could not create crash report directory: %s\n", [[error localizedDescription] UTF8String]);
         return;
@@ -32,7 +47,7 @@ static void SavePendingCrashReport()
         return;
     }
 
-    NSString* file = [GetCrashReportsPath() stringByAppendingPathComponent: @"crash-"];
+    NSString* file = [UnityGetCrashReportsPath() stringByAppendingPathComponent: @"crash-"];
     unsigned long long seconds = (unsigned long long)[[NSDate date] timeIntervalSince1970];
     file = [file stringByAppendingString: [NSString stringWithFormat: @"%llu", seconds]];
     file = [file stringByAppendingString: @".plcrash"];
@@ -47,6 +62,17 @@ static void SavePendingCrashReport()
     else
     {
         ::printf("CrashReporter: couldn't save crash report.\n");
+    }
+
+    // Now copy out a pending version that we can delete if/when we send it
+    file = [UnityGetCrashReportsPath() stringByAppendingPathComponent: @"crash-pending.plcrash"];
+    if ([data writeToFile: file atomically: YES])
+    {
+        ::printf("CrashReporter: saved copy of pending crash report.\n");
+    }
+    else
+    {
+        ::printf("CrashReporter: couldn't save copy of pending crash report.\n");
     }
 }
 
@@ -90,14 +116,8 @@ void InitCrashHandling()
 
 // This function will be called when AppDomain.CurrentDomain.UnhandledException event is triggered.
 // When running on device the app will do a hard crash and it will generate a crash log.
-void CrashedCheckBelowForHintsWhy()
+extern "C" void CrashedCheckBelowForHintsWhy()
 {
-#if ENABLE_CRASH_REPORT_SUBMISSION
-    // Wait if app has crashed before we were able to submit an older pending crash report. This
-    // could happen if app crashes at startup.
-    WaitWhileCrashReportsAreSent();
-#endif
-
 #if ENABLE_IOS_CRASH_REPORTING || ENABLE_CUSTOM_CRASH_REPORTER
     // Make app crash hard here
     __builtin_trap();

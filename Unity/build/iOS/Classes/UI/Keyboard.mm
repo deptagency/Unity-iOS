@@ -105,7 +105,8 @@ static const unsigned       kSystemButtonsSpace = 2 * 60 + 3 * 18; // empirical 
 }
 
 #if PLATFORM_IOS
-- (void)keyboardDidShow:(NSNotification*)notification
+
+- (void)keyboardWillShow:(NSNotification *)notification
 {
     if (notification.userInfo == nil || inputView == nil)
         return;
@@ -115,6 +116,10 @@ static const unsigned       kSystemButtonsSpace = 2 * 60 + 3 * 18; // empirical 
     rect.origin.y = [UnityGetGLView() frame].size.height - rect.size.height; // iPhone X sometimes reports wrong y value for keyboard
 
     [self positionInput: rect x: rect.origin.x y: rect.origin.y];
+}
+
+- (void)keyboardDidShow:(NSNotification*)notification
+{
     _active = YES;
 }
 
@@ -164,7 +169,7 @@ struct CreateToolbarResult
 };
 - (CreateToolbarResult)createToolbarWithView:(UIView*)view
 {
-    UIToolbar* toolbar = [[UIToolbar alloc] initWithFrame: CGRectMake(0, 160, 320, kToolBarHeight)];
+    UIToolbar* toolbar = [[UIToolbar alloc] initWithFrame: CGRectMake(0, 840, 320, kToolBarHeight)];
     UnitySetViewTouchProcessing(toolbar, touchesIgnored);
     toolbar.hidden = NO;
 
@@ -192,7 +197,7 @@ struct CreateToolbarResult
     if (self)
     {
 #if PLATFORM_IOS
-        textView = [[UITextView alloc] initWithFrame: CGRectMake(0, 480, 480, 30)];
+        textView = [[UITextView alloc] initWithFrame: CGRectMake(0, 840, 480, 30)];
         textView.delegate = self;
         textView.font = [UIFont systemFontOfSize: 18.0];
         textView.hidden = YES;
@@ -224,6 +229,7 @@ struct CreateToolbarResult
         #undef CREATE_TOOLBAR
 
 #if PLATFORM_IOS
+        [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(keyboardWillShow:) name: UIKeyboardWillShowNotification object: nil];
         [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(keyboardDidShow:) name: UIKeyboardDidShowNotification object: nil];
         [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(keyboardWillHide:) name: UIKeyboardWillHideNotification object: nil];
         [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(keyboardDidChangeFrame:) name: UIKeyboardDidChangeFrameNotification object: nil];
@@ -386,8 +392,16 @@ struct CreateToolbarResult
 #if PLATFORM_IOS
 - (void)positionInput:(CGRect)kbRect x:(float)x y:(float)y
 {
-    float safeAreaInsetLeft = [UnityGetGLView() safeAreaInsets].left;
-    float safeAreaInsetRight = [UnityGetGLView() safeAreaInsets].right;
+    float safeAreaInsetLeft = 0;
+    float safeAreaInsetRight = 0;
+
+#if UNITY_HAS_IOSSDK_11_0
+    if (@available(iOS 11.0, *))
+    {
+        safeAreaInsetLeft = [UnityGetGLView() safeAreaInsets].left;
+        safeAreaInsetRight = [UnityGetGLView() safeAreaInsets].right;
+    }
+#endif
 
     if (_multiline)
     {
@@ -404,9 +418,9 @@ struct CreateToolbarResult
         [inputView removeConstraint: widthConstraint];
 
         inputView.frame = CGRectMake(inputView.frame.origin.x,
-                inputView.frame.origin.y,
-                kbRect.size.width - safeAreaInsetLeft - safeAreaInsetRight - kSystemButtonsSpace,
-                inputView.frame.size.height);
+            inputView.frame.origin.y,
+            kbRect.size.width - safeAreaInsetLeft - safeAreaInsetRight - kSystemButtonsSpace,
+            inputView.frame.size.height);
 
         // required to avoid auto-resizing on iOS 11 in case if input text is too long
         widthConstraint.constant = inputView.frame.size.width;
@@ -834,7 +848,7 @@ static bool StringContainsEmoji(NSString *string)
                 ||  IS_IN(hs, 0x2934, 0x2935)
                 // Miscellaneous Symbols and Arrows
                 ||  IS_IN(hs, 0x2B05, 0x2B07) || IS_IN(hs, 0x2B1B, 0x2B1C) || hs == 0x2B50 || hs == 0x2B55
-                )
+            )
             {
                 returnValue = YES;
             }

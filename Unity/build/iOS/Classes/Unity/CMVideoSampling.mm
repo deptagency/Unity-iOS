@@ -33,13 +33,13 @@ void CMVideoSampling_Uninitialize(CMVideoSampling* sampling)
     }
 }
 
-intptr_t CMVideoSampling_SampleBuffer(CMVideoSampling* sampling, void* buffer, size_t* w, size_t* h)
+intptr_t CMVideoSampling_ImageBuffer(CMVideoSampling* sampling, CVImageBufferRef buffer, size_t* w, size_t* h)
 {
     intptr_t retTex = 0;
 
     if (sampling->cvImageBuffer)
         CFRelease(sampling->cvImageBuffer);
-    sampling->cvImageBuffer = CMSampleBufferGetImageBuffer((CMSampleBufferRef)buffer);
+    sampling->cvImageBuffer = buffer;
     CFRetain(sampling->cvImageBuffer);
 
     *w = CVPixelBufferGetWidth((CVImageBufferRef)sampling->cvImageBuffer);
@@ -48,8 +48,26 @@ intptr_t CMVideoSampling_SampleBuffer(CMVideoSampling* sampling, void* buffer, s
     {
         CFRelease(sampling->cvTextureCacheTexture);
         FlushCVTextureCache(sampling->cvTextureCache);
+        sampling->cvTextureCacheTexture = nil;
     }
-    sampling->cvTextureCacheTexture = CreateTextureFromCVTextureCache(sampling->cvTextureCache, sampling->cvImageBuffer, *w, *h);
+
+    OSType pixelFormat = CVPixelBufferGetPixelFormatType(buffer);
+    switch (pixelFormat)
+    {
+        case kCVPixelFormatType_32BGRA:
+            sampling->cvTextureCacheTexture = CreateBGRA32TextureFromCVTextureCache(sampling->cvTextureCache, sampling->cvImageBuffer, *w, *h);
+            break;
+#if UNITY_HAS_IOSSDK_11_0
+        case kCVPixelFormatType_DepthFloat16:
+            sampling->cvTextureCacheTexture = CreateHalfFloatTextureFromCVTextureCache(sampling->cvTextureCache, sampling->cvImageBuffer, *w, *h);
+            break;
+#endif
+        default:
+            #define FourCC2Str(fourcc) (const char[]){*(((char*)&fourcc)+3), *(((char*)&fourcc)+2), *(((char*)&fourcc)+1), *(((char*)&fourcc)+0),0}
+            ::printf("CMVideoSampling_SampleBuffer: unexpected pixel format \'%s\'\n", FourCC2Str(pixelFormat));
+            break;
+    }
+
     if (sampling->cvTextureCacheTexture)
         retTex = GetTextureFromCVTextureCache(sampling->cvTextureCacheTexture);
 
@@ -67,6 +85,11 @@ intptr_t CMVideoSampling_SampleBuffer(CMVideoSampling* sampling, void* buffer, s
     }
 
     return retTex;
+}
+
+intptr_t CMVideoSampling_SampleBuffer(CMVideoSampling* sampling, void* buffer, size_t* w, size_t* h)
+{
+    return CMVideoSampling_ImageBuffer(sampling, CMSampleBufferGetImageBuffer((CMSampleBufferRef)buffer), w, h);
 }
 
 intptr_t CMVideoSampling_LastSampledTexture(CMVideoSampling* sampling)

@@ -5,7 +5,9 @@
 @class AVPlayer;
 
 
-@interface VideoPlayerView : UIView {}
+@interface VideoPlayerView : UIView
+{
+}
 @property(nonatomic, retain) AVPlayer* player;
 @end
 
